@@ -1,0 +1,51 @@
+# Stage 1 (dual VAE) config for LLVIP.
+# Loss (Eq. 4): L1 + LPIPS (VIS/IR) + SSIM + thermal-distribution matching.
+data:
+  root: data/LLVIP
+  vis_dir_name: "visible"
+  ir_dir_name: "infrared"
+  pair_mode: "same_name"
+  id_regex_vis: "FLIR_(\\d+)"
+  id_regex_ir: "FLIR_(\\d+)"
+  img_size: 512
+  max_samples: null
+  ir_channels: 1
+  default_caption: "Low-light urban scene, sharp clear subjects, no geometric distortion."
+  captions_json: null
+
+model:
+  pretrained: "runwayml/stable-diffusion-v1-5"
+  vae_subfolder: "vae"
+  local_files_only: false
+  dtype: "float32"
+  ir_out_channels: 1
+
+loss:
+  lambda_vis: 1.0
+  lambda_ir: 1.0
+  lambda_kl: 1.0e-6
+  lambda_lpips_vis: 0.5
+  lambda_lpips_ir: 0.5
+  lambda_ssim: 0.2
+  lambda_thermal_dist: 0.5
+
+train:
+  batch_size: 4
+  num_workers: 4
+  epochs: 10
+  lr: 1.0e-5
+  lr_ir_mult: 1.0
+  weight_decay: 0.01
+  grad_clip: 1.0
+  log_every: 50
+  save_every: 1000
+  recon_preview_every_steps: 500
+  recon_preview_every_epochs: 1
+  recon_preview_num: 4
+  seed: 42
+  device: "cuda"
+  use_amp: true
+  amp_dtype: "float16"
+
+output:
+  root: runs/llvip/train_vae_v2

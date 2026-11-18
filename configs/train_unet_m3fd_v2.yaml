@@ -1,0 +1,47 @@
+# Stage 2 (UNet fine-tuning) config for M3FD: full-parameter fine-tuning with
+# the IR statistical-moment prior L_P on top of the Stage-1 dual VAE checkpoint.
+data:
+  root: data/M3FD
+  vis_dir_name: "vi"
+  ir_dir_name: "ir"
+  pair_mode: "same_name"
+  id_regex_vis: "FLIR_(\\d+)"
+  id_regex_ir: "FLIR_(\\d+)"
+  img_size: 512
+  max_samples: null
+  ir_channels: 1
+  default_caption: "Outdoor scene, sharp clear subjects, no geometric distortion."
+  captions_json: data/M3FD/vi_captions.json
+
+paths:
+  dual_vae_ckpt: checkpoints/m3fd/dual_vae_v2.pt
+  sd_id: "runwayml/stable-diffusion-v1-5"
+  local_files_only: false
+
+model:
+  ir_out_channels: 1
+
+train:
+  batch_size: 4
+  num_workers: 2
+  max_train_steps: 15000
+  lr: 1.0e-5
+  log_every: 50
+  save_every: 5000
+  seed: 42
+  device: "cuda"
+  use_amp: true
+  aux_lambda_ir_stat: 0.1   # lambda_P: weight of the IR statistical prior L_P
+  aux_z_clip: 10.0
+  # The released checkpoint was trained without a timestep threshold;
+  # set an int (e.g. 250) to restrict L_P to timesteps t <= tau.
+  aux_timestep_max: null
+  preview_every_steps: 1000
+  preview_every_epochs: 1
+  preview_inference_steps: 30
+  preview_guidance_scale: 7.5
+  preview_num_samples: 2
+  preview_seed: 42
+
+output:
+  root: runs/m3fd/train_unet_v2
